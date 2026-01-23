@@ -9,6 +9,7 @@
 #include "femEnergy.cuh"
 #include "math.h"
 #include <stdio.h>
+#include <assert.h>
 
 
 template <int ROWS, int COLS>
