@@ -67,10 +67,12 @@ Support platforms: Windows, Linux
 
 | Name                                   | Version | Usage                                               | Import         |
 | -------------------------------------- | ------- | --------------------------------------------------- | -------------- |
-| cuda                                   | >=11.0  | GPU programming                                     | system install |
+| cuda                                   | >=11.0  | GPU programming (12.4 recommended ✅)                | system install |
 | eigen3                                 | 3.4.0   | matrix calculation                                  | package        |
 | freeglut                               | 3.4.0   | visualization                                       | package        |
 | glew                                   | 2.2.0#3 | visualization                                       | package        |
+| nlohmann-json                          | Latest  | JSON parsing                                        | package        |
+| tbb                                    | Latest  | Threading Building Blocks                           | package        |
 
 ### linux
 
@@ -85,8 +87,23 @@ sudo apt install libglew-dev freeglut3-dev libeigen3-dev nlohmann-json3-dev
 We use [vcpkg](https://github.com/microsoft/vcpkg) to manage the libraries we need and use CMake to build the project. The simplest way to let CMake detect vcpkg is to set the system environment variable `CMAKE_TOOLCHAIN_FILE` to `(YOUR_VCPKG_PARENT_FOLDER)/vcpkg/scripts/buildsystems/vcpkg.cmake`
 
 ```shell
-vcpkg install eigen3 freeglut glew freeglut nlohmann-json
+vcpkg install eigen3:x64-windows freeglut:x64-windows glew:x64-windows nlohmann-json:x64-windows tbb:x64-windows
 ```
+
+**Note:** 
+- ⚠️ The original command was missing `tbb` (required dependency)
+- ⚠️ The original command had `freeglut` listed twice
+- ✅ Use the corrected command above with proper triplets (`:x64-windows`)
+
+## Building
+
+**For detailed build instructions, see [BUILD_GUIDE.md](BUILD_GUIDE.md)**
+
+**Quick start:** See [QUICK_START.md](QUICK_START.md) for essential build commands.
+
+**Having issues?** See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed troubleshooting help.
+
+**Recommended CUDA version:** 12.4 ✅ (tested and working)
 
 
 EXTERNAL CREDITS
