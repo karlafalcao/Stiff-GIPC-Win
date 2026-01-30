@@ -12,6 +12,16 @@ if(UNIX)
     set(CMAKE_CXX_FLAGS "-O3")
 endif()
 
+# CUDA only officially supports VS 2019–2022; allow newer MSVC (e.g. VS 18) when needed.
+# Must be a single token (no leading space) so nvcc does not treat it as an input file.
+if(WIN32)
+    if(CMAKE_CUDA_FLAGS)
+      set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -allow-unsupported-compiler")
+    else()
+      set(CMAKE_CUDA_FLAGS "-allow-unsupported-compiler")
+    endif()
+endif()
+
 project(StiffGIPC LANGUAGES CXX CUDA)
 
 # generate compile_commands.json
@@ -19,6 +29,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # find packages
 enable_language(CUDA)
+# Prefer vcpkg Eigen to avoid conflicts with Chocolatey/system Eigen when nvcc runs
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/installed/x64-windows/share/eigen3/cmake")
+  set(Eigen3_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/installed/x64-windows/share/eigen3/cmake")
+endif()
 find_package(Eigen3 REQUIRED)
 find_package(TBB REQUIRED)
 find_package(GLEW REQUIRED)
@@ -84,7 +98,7 @@ set_target_properties(gipc PROPERTIES
 
 target_compile_options(gipc
     PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: 
-        ${CMAKE_CUDA_FLAGS} 
+        -allow-unsupported-compiler
         --use_fast_math 
         -lineinfo 
         --ptxas-options=-allow-expensive-optimizations=true 

@@ -1,3 +1,5 @@
 .vs*
 build*
+!BUILD_WINDOWS.md
 Output/*
+vcpkg/

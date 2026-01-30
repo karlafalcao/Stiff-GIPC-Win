@@ -70,6 +70,42 @@ This guide covers detailed troubleshooting for common build issues. For basic bu
 
 ## 🔧 CUDA Issues
 
+### "No CUDA toolset found" (Visual Studio generator)
+
+**Symptoms:**
+- CMake configuration fails with: `No CUDA toolset found`
+- You ran `cmake ..` without `-G Ninja` and CMake chose the Visual Studio generator
+
+**Cause:** The Visual Studio generator expects CUDA to be installed as a VS “platform toolset”. That integration may be missing or not support your VS version (e.g. VS 2026).
+
+**Solution:** Use the **Ninja** generator and set the CUDA compiler and toolchain with **explicit paths** (so CMake does not receive a literal `$env:...`). Run from **Developer PowerShell for VS** so MSVC is in PATH, and install Ninja: `winget install Ninja-build.Ninja`. Then:
+
+```powershell
+$Toolchain = "C:/Users/karla/coding/Stiff-GIPC/vcpkg/scripts/buildsystems/vcpkg.cmake"
+$cuda = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4"
+$env:CUDA_PATH = $cuda
+$env:PATH = "$cuda\bin;$env:PATH"
+cd C:\Users\karla\coding\Stiff-GIPC\build
+Remove-Item CMakeCache.txt, CMakeFiles -Recurse -Force -ErrorAction SilentlyContinue
+cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCUDAToolkit_ROOT="$cuda" -DCMAKE_CUDA_COMPILER="$cuda\bin\nvcc.exe" -DCMAKE_TOOLCHAIN_FILE="$Toolchain"
+```
+
+Or use the project build script (it sets PATH, finds Ninja, and runs in a proper environment): `.\build.ps1`
+
+### nvcc: "Cannot find compiler 'cl.exe' in PATH"
+
+**Symptoms:**
+- CMake configuration fails with: `nvcc fatal : Cannot find compiler 'cl.exe' in PATH`
+- "The CXX compiler identification is unknown" then the CUDA compiler check fails
+
+**Cause:** You ran `cmake` from a **regular** PowerShell or Command Prompt. On Windows, nvcc uses MSVC’s `cl.exe` for host code; `cl.exe` is only in PATH in a **Developer** environment (Developer PowerShell for VS, or after running `vcvars64.bat`).
+
+**Solution:** Either:
+
+1. **Use the project build script** (it runs vcvars64 then cmake): from project root run `.\build.ps1`
+2. **Open "Developer PowerShell for Visual Studio"** (Start menu), then run your cmake commands there, or
+3. **From regular PowerShell**, use the "Option A" block in [BUILD_WINDOWS.md](BUILD_WINDOWS.md) under "Manual configure" — it runs `vcvars64.bat` via `cmd /c` before cmake and build.
+
 ### CUDA Not Found by CMake
 
 **Symptoms:**
@@ -368,7 +404,32 @@ Then reconfigure and rebuild.
 
 CUDA 11.8 is deprecated for this project. Upgrade to CUDA 12.4.
 
-### CUDA 13.1 Compatibility Issues
+### CUDA 13.1 + Visual Studio 2026 (VS 18) — unsupported / cudafe++ crash
+
+**Symptoms:**
+- CMake compiler check fails with: `#error: unsupported Microsoft Visual Studio version! Only the versions between 2019 and 2022 (inclusive) are supported!`
+- Or: `'cudafe++' died with status 0xC0000005 (ACCESS_VIOLATION)` when using `-allow-unsupported-compiler`
+
+**Root Cause:**
+- CUDA 13.1’s `host_config.h` only allows VS 2019–2022. VS 2026 (18) is not supported.
+- With `-allow-unsupported-compiler`, nvcc’s `cudafe++` can crash (ACCESS_VIOLATION) with VS 2026.
+
+**Solution:** ⚠️ **Use CUDA 12.4**
+
+Point the build at CUDA 12.4 (you can keep 13.1 installed). From the project root:
+
+```powershell
+$cuda = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4"
+$env:CUDA_PATH = $cuda
+$env:PATH = "$cuda\bin;$env:PATH"
+cd build
+Remove-Item CMakeCache.txt, CMakeFiles -Recurse -Force -ErrorAction SilentlyContinue
+# Then re-run your cmake .. -G Ninja ... with -DCMAKE_CUDA_COMPILER="$cuda\bin\nvcc.exe" and -DCUDAToolkit_ROOT="$cuda"
+```
+
+If you only have VS 2026 and CUDA 12.4 still fails the compiler check, install **Visual Studio 2022 Build Tools** alongside VS 2026 and use **Developer PowerShell for VS 2022** to build (so `cl.exe` is VS 2022).
+
+### CUDA 13.1 Compatibility Issues (template / code errors)
 
 **Symptoms:**
 - Build fails with template specialization errors

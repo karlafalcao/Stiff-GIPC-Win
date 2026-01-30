@@ -99,7 +99,7 @@ vcpkg install eigen3:x64-windows freeglut:x64-windows glew:x64-windows nlohmann-
 
 **For detailed build instructions, see [BUILD_GUIDE.md](BUILD_GUIDE.md)**
 
-**Quick start:** See [QUICK_START.md](QUICK_START.md) for essential build commands.
+**Quick start:** See [QUICK_START.md](QUICK_START.md) for essential build commands. **Windows:** See [BUILD_WINDOWS.md](BUILD_WINDOWS.md) for step-by-step dependency install and build.
 
 **Having issues?** See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed troubleshooting help.
 

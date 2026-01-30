@@ -1,5 +1,8 @@
 # Setup script for Stiff-GIPC dependencies
 # This script helps install vcpkg and required dependencies
+# Usage: .\setup-dependencies.ps1 [-VcpkgInstallPath "C:\dev\vcpkg"]  (optional, for non-interactive use)
+
+param([string]$VcpkgInstallPath = "")
 
 Write-Host "Stiff-GIPC Dependency Setup" -ForegroundColor Green
 Write-Host "============================" -ForegroundColor Green
@@ -11,7 +14,8 @@ $vcpkgPaths = @(
     "C:\dev\vcpkg", 
     "C:\tools\vcpkg",
     "$env:USERPROFILE\vcpkg",
-    "$env:LOCALAPPDATA\vcpkg"
+    "$env:LOCALAPPDATA\vcpkg",
+    (Join-Path $PSScriptRoot "vcpkg")
 )
 
 $vcpkgFound = $false
@@ -30,8 +34,11 @@ if (-not $vcpkgFound) {
     Write-Host "vcpkg not found. Let's install it!" -ForegroundColor Yellow
     Write-Host ""
     
-    # Ask where to install
-    $installPath = Read-Host "Where would you like to install vcpkg? (default: C:\dev\vcpkg)"
+    # Use parameter or ask where to install
+    $installPath = $VcpkgInstallPath
+    if ([string]::IsNullOrWhiteSpace($installPath)) {
+        $installPath = Read-Host "Where would you like to install vcpkg? (default: C:\dev\vcpkg)"
+    }
     if ([string]::IsNullOrWhiteSpace($installPath)) {
         $installPath = "C:\dev\vcpkg"
     }
@@ -86,9 +93,10 @@ foreach ($package in $packages) {
 Write-Host ""
 Write-Host "Setting up environment..." -ForegroundColor Cyan
 
-# Set toolchain file
+# Set toolchain file for this session so build.ps1 can find it
 $toolchainFile = Join-Path $vcpkgPath "scripts\buildsystems\vcpkg.cmake"
 $env:CMAKE_TOOLCHAIN_FILE = $toolchainFile
+Write-Host "Set CMAKE_TOOLCHAIN_FILE for this session." -ForegroundColor Green
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
@@ -104,5 +112,5 @@ Write-Host "Or run this command in your PowerShell session:" -ForegroundColor Ye
 Write-Host "  `$env:CMAKE_TOOLCHAIN_FILE = `"$toolchainFile`"" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Now you can build the project!" -ForegroundColor Green
-Write-Host "  cd C:\Users\Pichau\karla\Stiff-GIPC" -ForegroundColor Cyan
+Write-Host "  cd $PSScriptRoot" -ForegroundColor Cyan
 Write-Host "  .\build.ps1" -ForegroundColor Cyan

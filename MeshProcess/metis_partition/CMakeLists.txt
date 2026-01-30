@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../vcpkg/installed/x64-windows/share/eigen3/cmake")
+  set(Eigen3_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../vcpkg/installed/x64-windows/share/eigen3/cmake")
+endif()
 find_package(Eigen3 REQUIRED)
 add_library(metis_partition STATIC)
 
