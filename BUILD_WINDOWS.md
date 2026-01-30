@@ -78,16 +78,21 @@ $env:CMAKE_TOOLCHAIN_FILE = $Toolchain
 
 $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $VsPath = & $vsWhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-$vcvars64 = "$VsPath\VC\Auxiliary\Build\vcvars64.bat"
+if (-not $VsPath) { throw "Visual Studio not found. Install Build Tools 2022 with 'Desktop development with C++'." }
+$vcvars64 = Join-Path $VsPath "VC\Auxiliary\Build\vcvars64.bat"
+if (-not (Test-Path $vcvars64)) { throw "vcvars64.bat not found at: $vcvars64" }
 $cmakeExe = (Get-Command cmake -ErrorAction SilentlyContinue).Source
 if (-not $cmakeExe) { $cmakeExe = "C:\Program Files\CMake\bin\cmake.exe" }
+if (-not (Test-Path $cmakeExe)) { throw "CMake not found. Install CMake or add it to PATH." }
 
 mkdir $ProjectRoot\build -Force
 cd $ProjectRoot\build
 Remove-Item CMakeCache.txt, CMakeFiles -Recurse -Force -ErrorAction SilentlyContinue
 
-cmd /c "call `"$vcvars64`" >nul && `"$cmakeExe`" .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCUDAToolkit_ROOT=`"$cuda`" -DCMAKE_CUDA_COMPILER=`"$cuda\bin\nvcc.exe`" -DCMAKE_TOOLCHAIN_FILE=`"$Toolchain`""
-cmd /c "call `"$vcvars64`" >nul && `"$cmakeExe`" --build . --config Release"
+$configureCmd = "call `"$vcvars64`" >nul && `"$cmakeExe`" .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCUDAToolkit_ROOT=`"$cuda`" -DCMAKE_CUDA_COMPILER=`"$cuda\bin\nvcc.exe`" -DCMAKE_TOOLCHAIN_FILE=`"$Toolchain`""
+$buildCmd     = "call `"$vcvars64`" >nul && `"$cmakeExe`" --build . --config Release"
+cmd /c $configureCmd
+cmd /c $buildCmd
 ```
 
 **Option B — from Developer PowerShell for VS** (Start menu → “Developer PowerShell for VS 2022” or your VS version). Then:
