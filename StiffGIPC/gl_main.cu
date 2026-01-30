@@ -1092,7 +1092,7 @@ void initScene()
     std::filesystem::exists(metis_dir) || std::filesystem::create_directory(metis_dir);
     ipc.pcg_data.P_type = 1;
 
-    int scene_no = 4;
+    int scene_no = 2;
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //!!!!!!!!!!!!!!!!ABD must be loaded before FEM!!!!!!!!!!!!!!!!!!
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
